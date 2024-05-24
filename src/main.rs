@@ -1,7 +1,8 @@
 use std::io;
 
 fn main() {
-    get_user_guess();
+    let guess = get_user_guess();
+    println!("You've guessed {guess}");
 }
 
 fn get_user_guess() -> u32 {
