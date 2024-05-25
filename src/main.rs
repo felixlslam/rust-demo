@@ -3,14 +3,14 @@ use std::{io, thread::{self, sleep}, time::Duration};
 use rand::Rng; //Rng is a trait that needs to be in-scope so that the method from this trait can be used.
 
 fn main() {
-    //Here, I put secret_number into a Box smart pointer, so that the original u32 variable can be moved and mutated inside the thread
-    let mut secret_number = Box::new(rand::thread_rng().gen_range(0..=100));
+    let mut secret_number = rand::thread_rng().gen_range(0..=100);
     println!("The secret number is {}", secret_number);
 
+    let secret_number_ref = &mut secret_number; //secret_number is borrowed as mutable here
     thread::spawn(move || { //move keyword here tells the thread to "move" everything that's accessed inside the thread and exist outside the thread
         loop {
             sleep(Duration::from_secs(5));
-            *secret_number = rand::thread_rng().gen_range(0..=100);  //This secret_number is actually another variable independent from the secret_number in the main thread
+            *secret_number_ref = rand::thread_rng().gen_range(0..=100); // Moved the secret_number_ref to the thread and tries to change the value pointed by the reference
             println!("**** New secret number is {} *****", secret_number);
         }
     });
@@ -18,7 +18,7 @@ fn main() {
     loop {
         let guess = get_user_guess();
         println!("You've guessed {guess}");
-        match guess.cmp(&secret_number) {   // oh ! The secret_number variable has been moved into the thread and no longer exist here.
+        match guess.cmp(&secret_number) {   // it cannot be borrowed anywhere again
             std::cmp::Ordering::Less => println!("Too small"),
             std::cmp::Ordering::Greater => println!("Too big"),
             std::cmp::Ordering::Equal => {
