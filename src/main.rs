@@ -10,7 +10,7 @@ fn main() {
 
     let secret_number_clone = secret_number.clone(); //To share an Arc, between different threads, we need to "clone" the Arc before the passing to a thread
 
-    thread::spawn(move || {
+    thread::spawn(move || { //move keyword here tells the thread to "move" everything that's accessed inside the thread and exist outside the thread
         loop {
             sleep(Duration::from_secs(5));
             //The value wrapped by an Arc is automatically dereferenced (deref) that's why we can directly use the load() and store() method of AtomicU32 below
