@@ -3,7 +3,7 @@ use std::{io, sync::{atomic::AtomicU32, Arc}, thread::{self, sleep}, time::Durat
 use rand::Rng; //Rng is a trait that needs to be in-scope so that the method from this trait can be used.
 
 fn main() {
-    //As secret_number needs to be accessed in both the main thread and the spawned thread, it needs to be wrapped inside Arc (Asynchronous Reference Count)
+    //As secret_number needs to be accessed in both the main thread and the spawned thread, it needs to be wrapped inside Arc (Atomic Reference Count)
     //Besides, the secret_number needs to be mutated inside the spawned thread, Arc doesn't support mutation of the inner value, we needs to use AtomicU32 to store the u32 value which allows mutation in a thread-safe manner
     let secret_number: Arc<AtomicU32> = Arc::new(AtomicU32::new(rand::thread_rng().gen_range(0..=100))); 
     println!("The secret number is {}", secret_number.load(std::sync::atomic::Ordering::Relaxed));
