@@ -1,28 +1,23 @@
-use std::{io, sync::{atomic::AtomicU32, Arc}, thread::{self, sleep}, time::Duration};
+use std::{io, thread::{self, sleep}, time::Duration};
 
 use rand::Rng; //Rng is a trait that needs to be in-scope so that the method from this trait can be used.
 
 fn main() {
-    //As secret_number needs to be accessed in both the main thread and the spawned thread, it needs to be wrapped inside Arc (Asynchronous Reference Count)
-    //Besides, the secret_number needs to be mutated inside the spawned thread, Arc doesn't support mutation of the inner value, we needs to use AtomicU32 to store the u32 value which allows mutation in a thread-safe manner
-    let secret_number: Arc<AtomicU32> = Arc::new(AtomicU32::new(rand::thread_rng().gen_range(0..=100))); 
-    println!("The secret number is {}", secret_number.load(std::sync::atomic::Ordering::Relaxed));
-
-    let secret_number_clone = secret_number.clone(); //To share an Arc, between different threads, we need to "clone" the Arc before the passing to a thread
+    let mut secret_number = Box::new(rand::thread_rng().gen_range(0..=100));
+    println!("The secret number is {}", secret_number);
 
     thread::spawn(move || { //move keyword here tells the thread to "move" everything that's accessed inside the thread and exist outside the thread
         loop {
             sleep(Duration::from_secs(5));
-            //The value wrapped by an Arc is automatically dereferenced (deref) that's why we can directly use the load() and store() method of AtomicU32 below
-            secret_number_clone.store(rand::thread_rng().gen_range(0..=100), std::sync::atomic::Ordering::Relaxed);
-            println!("**** New secret number is {} *****", secret_number_clone.load(std::sync::atomic::Ordering::Relaxed));
+            *secret_number = rand::thread_rng().gen_range(0..=100);  //This secret_number is actually another variable independent from the secret_number in the main thread
+            println!("**** New secret number is {} *****", secret_number);
         }
     });
 
     loop {
         let guess = get_user_guess();
         println!("You've guessed {guess}");
-        match guess.cmp(&secret_number.load(std::sync::atomic::Ordering::Relaxed)) {
+        match guess.cmp(&secret_number) {
             std::cmp::Ordering::Less => println!("Too small"),
             std::cmp::Ordering::Greater => println!("Too big"),
             std::cmp::Ordering::Equal => {
