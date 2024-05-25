@@ -3,6 +3,7 @@ use std::{io, thread::{self, sleep}, time::Duration};
 use rand::Rng; //Rng is a trait that needs to be in-scope so that the method from this trait can be used.
 
 fn main() {
+    //Here, I put secret_number into a Box smart pointer, so that the original u32 variable can be moved and mutated inside the thread
     let mut secret_number = Box::new(rand::thread_rng().gen_range(0..=100));
     println!("The secret number is {}", secret_number);
 
@@ -17,7 +18,7 @@ fn main() {
     loop {
         let guess = get_user_guess();
         println!("You've guessed {guess}");
-        match guess.cmp(&secret_number) {
+        match guess.cmp(&secret_number) {   // oh ! The secret_number variable has been moved into the thread and no longer exist here.
             std::cmp::Ordering::Less => println!("Too small"),
             std::cmp::Ordering::Greater => println!("Too big"),
             std::cmp::Ordering::Equal => {
