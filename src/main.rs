@@ -1,15 +1,25 @@
-use std::io;
+use std::{io, sync::{atomic::AtomicU32, Arc}, thread::{self, sleep}, time::Duration};
 
 use rand::Rng; //Rng is a trait that needs to be in-scope so that the method from this trait can be used.
 
 fn main() {
-    let secret_number: u32 = rand::thread_rng().gen_range(0..=100);
-    println!("The secret number is {secret_number}");
+    let secret_number: Arc<AtomicU32> = Arc::new(AtomicU32::new(rand::thread_rng().gen_range(0..=100)));
+    println!("The secret number is {}", secret_number.load(std::sync::atomic::Ordering::Relaxed));
+
+    let secret_number_clone = secret_number.clone();
+
+    thread::spawn(move || {
+        loop {
+            sleep(Duration::from_secs(5));
+            secret_number_clone.store(rand::thread_rng().gen_range(0..=100), std::sync::atomic::Ordering::Relaxed);
+            println!("New secret number is {}", secret_number_clone.load(std::sync::atomic::Ordering::Relaxed));
+        }
+    });
 
     loop {
         let guess = get_user_guess();
         println!("You've guessed {guess}");
-        match guess.cmp(&secret_number) {
+        match guess.cmp(&secret_number.load(std::sync::atomic::Ordering::Relaxed)) {
             std::cmp::Ordering::Less => println!("Too small"),
             std::cmp::Ordering::Greater => println!("Too big"),
             std::cmp::Ordering::Equal => {
