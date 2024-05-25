@@ -3,13 +3,13 @@ use std::{io, thread::{self, sleep}, time::Duration};
 use rand::Rng; //Rng is a trait that needs to be in-scope so that the method from this trait can be used.
 
 fn main() {
-    let mut secret_number = Box::new(rand::thread_rng().gen_range(0..=100));
+    let mut secret_number = rand::thread_rng().gen_range(0..=100);
     println!("The secret number is {}", secret_number);
 
     thread::spawn(move || { //move keyword here tells the thread to "move" everything that's accessed inside the thread and exist outside the thread
         loop {
             sleep(Duration::from_secs(5));
-            *secret_number = rand::thread_rng().gen_range(0..=100);  //This secret_number is actually another variable independent from the secret_number in the main thread
+            secret_number = rand::thread_rng().gen_range(0..=100);  //This secret_number is actually another variable independent from the secret_number in the main thread
             println!("**** New secret number is {} *****", secret_number);
         }
     });
