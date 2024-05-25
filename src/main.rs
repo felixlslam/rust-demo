@@ -1,8 +1,23 @@
 use std::io;
 
+use rand::Rng; //Rng is a trait that needs to be in-scope so that the method from this trait can be used.
+
 fn main() {
-    let guess = get_user_guess();
-    println!("You've guessed {guess}");
+    let secret_number: u32 = rand::thread_rng().gen_range(0..=100);
+    println!("The secret number is {secret_number}");
+
+    loop {
+        let guess = get_user_guess();
+        println!("You've guessed {guess}");
+        match guess.cmp(&secret_number) {
+            std::cmp::Ordering::Less => println!("Too small"),
+            std::cmp::Ordering::Greater => println!("Too big"),
+            std::cmp::Ordering::Equal => {
+                println!("You win!");
+                break;
+            }
+        }
+    }
 }
 
 fn get_user_guess() -> u32 {
@@ -16,7 +31,7 @@ fn get_user_guess() -> u32 {
                 println!("Error : {err}");
             }
         }
-        // guess variable is automatically here
+        // guess variable is automatically dropped here
     }
 }
 
